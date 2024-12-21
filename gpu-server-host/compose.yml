@@ -1,0 +1,45 @@
+
+services:
+
+  nvidia_smi_exporter:
+    image: docker.io/utkuozdemir/nvidia_gpu_exporter:1.2.1
+    container_name: nvidia_smi_exporter
+    command: "--web.listen-address=0.0.0.0:9835"
+    runtime: nvidia
+    #    ports:
+    #      - 9835:9835
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    volumes:
+      - /usr/bin/nvidia-smi:/usr/bin/nvidia-smi
+      - /usr/lib/x86_64-linux-gnu/libnvidia-ml.so:/usr/lib/x86_64-linux-gnu/libnvidia-ml.so
+      - /usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1:/usr/lib/x86_64-linux-gnu/libnvidia-ml.so.1
+    restart: unless-stopped
+    network_mode: host   # Use host network
+
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:v1.8.2
+    container_name: node_exporter
+    command: "--path.rootfs=/host"
+#    ports:
+#      - 9100:9100
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - /:/host:ro,rslave
+    network_mode: host   # Use host network
+
+  nvidia_exporter:
+    image: nvcr.io/nvidia/k8s/dcgm-exporter:2.3.2-2.6.2-ubuntu20.04
+    container_name: nvidia_exporter
+    runtime: nvidia
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+#    ports:
+#      - 9400:9400
+    restart: unless-stopped
+    network_mode: host   # Use host network
